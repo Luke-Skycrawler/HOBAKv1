@@ -22,7 +22,9 @@ IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY O
 #include <map>
 #include <stack>
 
-#include <sys/time.h>
+// #include <sys/time.h>
+#include <time.h>
+#include <winsock.h>
 
 // To time a function, just put:
 //

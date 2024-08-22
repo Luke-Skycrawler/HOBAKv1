@@ -15,7 +15,8 @@ WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWIS
 IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 */
 #include "util/DRAW_GL.h"
-
+#define _USE_MATH_DEFINES
+#include <math.h>
 ///////////////////////////////////////////////////////////////////////
 // A bunch fo drawing routines for HOBAK objects, all in one place
 //

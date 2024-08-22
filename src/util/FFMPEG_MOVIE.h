@@ -160,12 +160,12 @@ public:
     string ffmpegCmd = string(buffer) + string("-threads 0 -preset fast -y -pix_fmt yuv420p -crf 21 -vf vflip -vcodec libx264 ");
     ffmpegCmd = ffmpegCmd + string(moviename);
 
-    FILE* ffmpeg = popen(ffmpegCmd.c_str(), "w");
+    FILE* ffmpeg = _popen(ffmpegCmd.c_str(), "w");
 
     for (unsigned int x = 0; x < _frames.size(); x++)
       fwrite(_frames[x], sizeof(int) * _width * _height, 1, ffmpeg);
 
-    pclose(ffmpeg);
+    _pclose(ffmpeg);
   }
 
 private:

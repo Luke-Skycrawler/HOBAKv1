@@ -188,7 +188,7 @@ void glutMouseMotion(int x, int y)
 int glvuWindow()
 {
   const string title = string("Simulating scene: ") + scene->sceneName();
-  char buffer[title.length() + 1];
+  char* buffer = new char[title.length() + 1];
   strcpy(buffer, title.c_str());
   glvu.Init(buffer, GLUT_DOUBLE | GLUT_RGBA | GLUT_DEPTH | GLUT_MULTISAMPLE, 0, 0, 800, 800);
 
@@ -220,7 +220,7 @@ int glvuWindow()
   glutMouseFunc(&glutMouseClick);
   glutMotionFunc(&glutMouseMotion);
 
-  glEnable(GL_MULTISAMPLE);
+  //glEnable(GL_MULTISAMPLE);
   glEnable(GL_BLEND);
   glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
 

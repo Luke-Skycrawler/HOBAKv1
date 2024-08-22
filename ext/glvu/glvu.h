@@ -30,6 +30,7 @@
 #elif __linux__
 #include <GL/glut.h>
 #endif
+#include <GL/glut.h>
 #include <glvuVec3f.h>
 #include <camera.h>
 

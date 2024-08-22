@@ -16,7 +16,8 @@ IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY O
 */
 #ifndef SIMULATION_SCENE_H
 #define SIMULATION_SCENE_H
-
+#define _USE_MATH_DEFINES
+#include <math.h>
 #ifndef GL_DISABLED
 #include "util/DRAW_GL.h"
 #endif

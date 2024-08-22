@@ -16,7 +16,8 @@ IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY O
 */
 #ifndef MATRIX_UTIL_H
 #define MATRIX_UTIL_H
-
+#define _USE_MATH_DEFINES
+#include <math.h>
 #include "SETTINGS.h"
 
 namespace HOBAK {
