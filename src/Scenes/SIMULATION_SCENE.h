@@ -138,7 +138,7 @@ public:
   };
 #endif
 
-protected:
+public:
   // set the positions to previous timestep, in case the user wants to 
   // look at that instead of the current step
   void setToPreviousTimestep()

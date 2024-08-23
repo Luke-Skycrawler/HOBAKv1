@@ -39,12 +39,28 @@ IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY O
 #include "Scenes/QUASISTATIC_COLLISIONS.h"
 #include "Scenes/QUASISTATIC_STRETCH.h"
 #include "util/DRAW_GL.h"
-
 #include <snapshot.h>
-
+#include <iostream>
+#include <cnpy.h>
 using namespace HOBAK;
 using namespace std;
 
+void export_to_csr(const Eigen::SparseMatrix<double>& matrix,
+    std::vector<double>& values,
+    std::vector<int>& indices,
+    std::vector<int>& indptr) {
+    for (int k = 0; k < matrix.outerSize(); ++k) {
+        indptr.push_back(static_cast<int>(values.size()));
+        for (Eigen::SparseMatrix<double>::InnerIterator it(matrix, k); it; ++it) {
+            values.push_back(it.value());
+            if (matrix.IsRowMajor)
+              indices.push_back(it.col());
+            else 
+              indices.push_back(it.row());
+        }
+    }
+    indptr.push_back(static_cast<int>(values.size()));
+}
 GLVU glvu;
 FFMPEG_MOVIE movie;
 
@@ -299,6 +315,24 @@ int main(int argc, char *argv[])
     cout << " Failed to build scene-> Exiting ..." << endl;
     return 1;
   }
+
+  auto & solver = scene -> _solver;
+  scene->stepSimulation();
+
+  // auto K = solver -> _A;
+  auto K = solver -> _tetMesh.computeHyperelasticClampedHessian(solver -> _hyperelastic);
+  cout << "\nK rows = " << K.rows() << ", cols = " << K.cols() << "\n";
+
+  // SPARSE_MATRIX K(3, 3);
+  // for (int i = 0; i < 3; i ++) for (int j = 0; j < 3; j ++) K.coeffRef(i, j) = i * 3 + j;
+  vector<double> values;
+  vector<int> indices, indptr;
+  export_to_csr(K, values, indices, indptr);
+  cout << K.coeff(0, 0) << " " << K.coeff(0, 1) << " " << K.coeff(3, 3) << "\n";
+  // cout << K << "\n\n";
+  cnpy::npy_save("values.npy", values.data(), {values.size()}, "values");
+  cnpy::npy_save("indices.npy", indices.data(), { indices.size() }, "indices");
+  cnpy::npy_save("indptr.npy", indptr.data(), { indptr.size() }, "indptr");
 
   glutInit(&argc, argv);
   glvuWindow();

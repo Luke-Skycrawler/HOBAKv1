@@ -99,7 +99,7 @@ public:
   // make all objects lighter or heavier
   void scaleMass(const REAL& scalar)  { _M *= scalar; };
 
-protected:
+public:
   // shared initialization across constructors
   void initialize();
 

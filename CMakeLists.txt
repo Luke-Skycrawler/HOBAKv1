@@ -10,7 +10,7 @@ set(PROJECT_NAME main)
 ################################################################################
 # Source groups
 ################################################################################
-
+add_subdirectory("ext/cnpy")
 
 set(Includes
     "./"
@@ -21,6 +21,7 @@ set(Includes
     "ext/rapidjson" 
     "ext/glvu/" 
     "ext/rapidjson/" 
+    "ext/cnpy"
 )
 
 set(Sources
@@ -85,4 +86,4 @@ target_include_directories(main PRIVATE
 )
 
 target_sources(main PRIVATE ${ALL_FILES})
-target_link_libraries(main PRIVATE glad::glad GLUT::GLUT)
+target_link_libraries(main PRIVATE glad::glad GLUT::GLUT cnpy)

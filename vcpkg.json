@@ -3,6 +3,7 @@
     "version-string": "latest",
     "dependencies": [
       "glad",
-      "freeglut"
+      "freeglut",
+      "zlib"
     ]
   }

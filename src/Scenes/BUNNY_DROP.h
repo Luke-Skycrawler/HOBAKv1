@@ -39,6 +39,7 @@ public:
 
     // read in the tet mesh file
     _tetMeshFilename = string("../data/bunny/bunny_5.tobj");
+    // _tetMeshFilename = string("../data/tet.tobj");
     vector<VECTOR3> vertices;
     vector<VECTOR4I> tets;
     bool success = TET_MESH::readTobjFile(_tetMeshFilename, vertices, tets);
@@ -76,6 +77,7 @@ public:
     // build the tet mesh object
     _tetMesh = new TET_MESH_FASTER(vertices, tets);
     _hyperelastic = new VOLUME::SNH(mu, lambda);
+    // _hyperelastic = new VOLUME::STVK(mu, lambda);
     //_hyperelastic = new VOLUME::ARAP(mu * 4, lambda);
 
     const vector<REAL>& areas = _tetMesh->surfaceTriangleAreas();
