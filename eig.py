@@ -6,6 +6,8 @@ import polyscope as ps
 import polyscope.imgui as gui
 from test_ps import PSViewer
 from scipy.linalg import eigh
+from tobj import export_tobj, import_tobj 
+from medial import SlabMesh
 debug = False
 model = "bar2"
 values = np.load(f'output/{model}/values.npy')
@@ -14,6 +16,8 @@ indptr = np.load(f'output/{model}/indptr.npy')
 
 if __name__ == '__main__':
     np.set_printoptions(precision = 4, suppress = True)
+
+
     if debug:
         n_rows = n_cols = 3
         print(values)
@@ -47,6 +51,8 @@ if __name__ == '__main__':
         V, F = igl.read_triangle_mesh(f'output/{model}/{model}.obj')
 
         # print(A @ Q)
+
+
     ps.init()
     viewer = PSViewer(V, F, Q, eigenvalues)
     ps.set_user_callback(viewer.callback)
