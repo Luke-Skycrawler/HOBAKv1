@@ -9,7 +9,8 @@ from scipy.linalg import eigh
 from tobj import export_tobj, import_tobj 
 from medial import SlabMesh
 debug = False
-model = "bar2"
+# model = "bar2"
+model = "cap"
 values = np.load(f'output/{model}/values.npy')
 indices = np.load(f'output/{model}/indices.npy')
 indptr = np.load(f'output/{model}/indptr.npy')
@@ -54,6 +55,6 @@ if __name__ == '__main__':
 
 
     ps.init()
-    viewer = PSViewer(V, F, Q, eigenvalues)
+    viewer = PSViewer(V, F, Q, eigenvalues, model="cap")
     ps.set_user_callback(viewer.callback)
     ps.show()

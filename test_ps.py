@@ -2,9 +2,9 @@ import polyscope as ps
 import polyscope.imgui as gui
 import igl
 from bary_centric import TetBaryCentricCompute
-
+from pyqmat import qmat
 class PSViewer():
-    def __init__(self, V, F, Q, eigenvalues):
+    def __init__(self, V, F, Q, eigenvalues, model = "bar2"):
         self.V = V
         self.F = F
         self.Q = Q
@@ -14,15 +14,20 @@ class PSViewer():
         self.n_modes = self.Q.shape[1]
         self.deformed_mode = self.n_modes - 7
         self.magnitude = 1.0
-        self.objfile = "output/bar2/bar_deformed.obj"
-        self.surface_mesh_file = "data/bar.obj"
+        self.objfile = f"output/{model}/{model}_deformed.obj"
+        self.ma_file = f"output/{model}/{model}_deformed.ma"
+        self.surface_mesh_file = f"data/{model}.obj"
 
         self.surface_V, _, _, self.surface_F, _, _ = igl.read_obj(self.surface_mesh_file)
 
         self.mesh = ps.register_surface_mesh("mesh", self.V, self.F)
-        self.tbtt = TetBaryCentricCompute()
+
+        self.tbtt = TetBaryCentricCompute(model = model)
         self.slabmesh = ps.register_point_cloud("slabmesh", self.tbtt.slabmesh.V, radius = 0.1)
 
+        # self.qmat = qmat("data/{model}.off", f"data/{model}.ma")
+        # h = self.qmat.export_hausdorff_distance()
+        # self.slabmesh.add_scalar_quantity("hausdorff", h)
         
         # b, tid= tbtt.barycentric_coord(tbtt.medial_V[0])
         # print(b, tid)
@@ -46,7 +51,7 @@ class PSViewer():
         disp = self.magnitude * Qi 
 
         disp = disp.reshape(-1, 3)
-        self.mesh.update_vertex_positions(self.V + disp)
+        self.mesh.update_vertex_positions(self.V + disp[: self.V.shape[0]])
 
         self.tbtt.deform(disp)
         self.slabmesh.update_point_positions(self.tbtt.slabmesh.V)
@@ -76,8 +81,10 @@ class PSViewer():
             # igl.write_obj(f"{self.objfile}", surface_V, self.surface_F)
             print(f"{self.objfile} saved")
 
+        changed, self.ma_file = gui.InputText("MA File", self.ma_file)
         if (gui.Button("Export deformed ma & ply")):
-            pass
+            self.tbtt.slabmesh.export_ma(self.ma_file)
+            self.tbtt.slabmesh.export_ply(self.ma_file.replace(".ma", ".ply"))
 
 
         

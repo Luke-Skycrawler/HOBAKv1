@@ -1,19 +1,19 @@
 from tobj import import_tobj, export_tobj
-from medial import SlabMesh
+from medial import SlabMesh, slabmesh_default
 import numpy as np 
 import igl
 class TetBaryCentricCompute:
-    def __init__(self):
-        self.V, self.T = import_tobj(f"data/bar2.tobj")
+    def __init__(self, model = "bar2"):
+        self.V, self.T = import_tobj(f"data/{model}.tobj")
         self.a = self.V[self.T[:, 0]]
         self.b = self.V[self.T[:, 1]]
         self.c = self.V[self.T[:, 2]]
         self.d = self.V[self.T[:, 3]]
+        
 
-        self.slabmesh = SlabMesh()
-        self.slabmesh.V = np.zeros((2, 3))    
-        self.slabmesh.V[0, 0] = -0.4
-        self.slabmesh.V[1, 0] = 0.4
+        self.slabmesh = slabmesh_default()
+
+        
         
 
         bc = []
