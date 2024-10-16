@@ -49,12 +49,12 @@ if __name__ == '__main__':
         np.save(f'output/{model}/eigenvalues.npy', eigenvalues)
         np.save(f'output/{model}/Q.npy', Q)
         
-        V, F = igl.read_triangle_mesh(f'output/{model}/{model}.obj')
+        # V, F = igl.read_triangle_mesh(f'output/{model}/{model}.obj')
 
         # print(A @ Q)
 
 
     ps.init()
-    viewer = PSViewer(V, F, Q, eigenvalues, model="cap")
+    viewer = PSViewer(Q, eigenvalues, model="cap")
     ps.set_user_callback(viewer.callback)
     ps.show()

@@ -51,7 +51,7 @@ class SlabMesh:
         linese = [to_stre(t) for t in self.E]
         linesf = [to_strf(t) for t in self.F]
         with open(filename, 'w') as f:
-            tot = f"t {self.V.shape[0]} {self.E.shape[0]} {self.F.shape[0]}\n"
+            tot = f"{self.V.shape[0]} {self.E.shape[0]} {self.F.shape[0]}\n"
             f.writelines([tot] + linesv + linese + linesf)
 
     def export_ply(self, filename):

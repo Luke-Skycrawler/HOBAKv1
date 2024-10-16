@@ -3,10 +3,10 @@ import polyscope.imgui as gui
 import igl
 from bary_centric import TetBaryCentricCompute
 from pyqmat import qmat
+import numpy as np
+from off import write_off
 class PSViewer():
-    def __init__(self, V, F, Q, eigenvalues, model = "bar2"):
-        self.V = V
-        self.F = F
+    def __init__(self, Q, eigenvalues, model = "bar2"):
         self.Q = Q
         self.eigenvalues = eigenvalues
 
@@ -16,11 +16,14 @@ class PSViewer():
         self.magnitude = 1.0
         self.objfile = f"output/{model}/{model}_deformed.obj"
         self.ma_file = f"output/{model}/{model}_deformed.ma"
-        self.surface_mesh_file = f"data/{model}.obj"
+        # self.surface_mesh_file = f"data/{model}.obj"
+        self.surface_mesh_file = f"data/{model}.off"
+        
 
-        self.surface_V, _, _, self.surface_F, _, _ = igl.read_obj(self.surface_mesh_file)
+        # self.surface_V, _, _, self.surface_F, _, _ = igl.read_obj(self.surface_mesh_file)
+        self.surface_V, self.surface_F, _ = igl.read_off(self.surface_mesh_file)
 
-        self.mesh = ps.register_surface_mesh("mesh", self.V, self.F)
+        self.mesh = ps.register_surface_mesh("mesh", self.surface_V, self.surface_F)
 
         self.tbtt = TetBaryCentricCompute(model = model)
         self.slabmesh = ps.register_point_cloud("slabmesh", self.tbtt.slabmesh.V, radius = 0.1)
@@ -51,7 +54,7 @@ class PSViewer():
         disp = self.magnitude * Qi 
 
         disp = disp.reshape(-1, 3)
-        self.mesh.update_vertex_positions(self.V + disp[: self.V.shape[0]])
+        self.mesh.update_vertex_positions(self.surface_V + disp[: self.surface_V.shape[0]])
 
         self.tbtt.deform(disp)
         self.slabmesh.update_point_positions(self.tbtt.slabmesh.V)
@@ -72,12 +75,12 @@ class PSViewer():
         # == Buttons
         if(gui.Button("Export deformed obj")):
             # This code is executed when the button is pressed
-            surface_V = (self.V + disp)[: self.surface_V.shape[0]]
+            surface_V = self.surface_V + disp[: self.surface_V.shape[0]]
             
             if self.objfile.endswith(".obj"):
-                igl.write_obj(f"{self.objfile}", surface_V, self.F)
+                igl.write_obj(f"{self.objfile}", surface_V, self.surface_F)
             elif self.objfile.endswith(".off"): 
-                igl.write_off(f"{self.objfile}", surface_V, self.F)
+                igl.write_off(f"{self.objfile}", surface_V, self.surface_F)
             # igl.write_obj(f"{self.objfile}", surface_V, self.surface_F)
             print(f"{self.objfile} saved")
 
@@ -86,8 +89,20 @@ class PSViewer():
             self.tbtt.slabmesh.export_ma(self.ma_file)
             self.tbtt.slabmesh.export_ply(self.ma_file.replace(".ma", ".ply"))
 
+        if (gui.Button("compute hausdorff")):
+            self.tbtt.slabmesh.export_ma(self.ma_file)
+            off_file = self.ma_file.replace(".ma", ".off")
+            surface_V = self.surface_V + disp[: self.surface_V.shape[0]]
+            write_off(f"{off_file}", surface_V, self.surface_F)
+            self.qmat = qmat(off_file, self.ma_file)
 
-        
+            h = self.qmat.export_hausdorff_distance()
+            h = np.array(h)
+            print(h.shape, self.surface_V.shape)
+            self.hausdorff = self.mesh.add_scalar_quantity("hausdorff", h, enabled = True)
+            print("hausdorff computed")
+            
+            
 
         
 
