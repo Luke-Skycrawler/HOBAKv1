@@ -22,6 +22,8 @@ class PSViewer():
         # self.surface_mesh_file = f"data/{model}.obj"
         self.surface_mesh_file = f"data/{model}.off"
         
+        self.fitting_save_folder = f"output/{model}/fitting"
+        
 
         # self.surface_V, _, _, self.surface_F, _, _ = igl.read_obj(self.surface_mesh_file)
         self.surface_V, self.surface_F, _ = igl.read_off(self.surface_mesh_file)
@@ -97,7 +99,7 @@ class PSViewer():
             if self.objfile.endswith(".obj"):
                 igl.write_obj(f"{self.objfile}", self.V_deform, self.surface_F)
             elif self.objfile.endswith(".off"): 
-                igl.write_off(f"{self.objfile}", self.V_deform, self.surface_F)
+                write_off(f"{off_file}", self.V_deform, self.surface_F)
             # igl.write_obj(f"{self.objfile}", surface_V, self.surface_F)
             print(f"{self.objfile} saved")
 
@@ -118,6 +120,12 @@ class PSViewer():
             self.hausdorff = self.mesh.add_scalar_quantity("hausdorff", self.h, enabled = True)
             print("hausdorff computed")
             
+        if (gui.Button("save extreme set")):
+            # saving for greedy optimization
+            write_off(f"{self.fitting_save_folder}/mesh.off", self.V_deform, self.surface_F)
+            np.save(f"{self.fitting_save_folder}/points_set.npy", self.points_set)
+            np.save(f"{self.fitting_save_folder}/faces_set.npy", self.faces_set)
+            self.tbtt.slabmesh.export_ma(f'{self.fitting_save_folder}/slabmesh.ma')
         changed, self.threshold = gui.SliderFloat("threshold", self.threshold, v_min = 0.0, v_max = 1.0)
         if (gui.Button("extract maximum points")):
             self.extract_max_points()
