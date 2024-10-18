@@ -4,7 +4,7 @@ cmake_minimum_required(VERSION 3.19)
 # Find dependencies provided by vcpkg (via vcpkg.cmake)
 find_package(GLUT REQUIRED)
 find_package(glad CONFIG REQUIRED)
-
+find_package(nlohmann_json CONFIG REQUIRED)
 set(PROJECT_NAME main)
 
 ################################################################################

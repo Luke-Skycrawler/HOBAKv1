@@ -39,7 +39,8 @@ public:
 
     // read in the tet mesh file
     //_tetMeshFilename = string("../data/bunny/bunny_5.tobj");
-     _tetMeshFilename = string("../data/cap.tobj");
+    //  _tetMeshFilename = string("../data/cap.tobj");
+    _tetMeshFilename = _inputMesh;
     vector<VECTOR3> vertices;
     vector<VECTOR4I> tets;
     bool success = TET_MESH::readTobjFile(_tetMeshFilename, vertices, tets);

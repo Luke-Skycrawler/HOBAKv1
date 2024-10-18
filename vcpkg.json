@@ -4,6 +4,7 @@
     "dependencies": [
       "glad",
       "freeglut",
-      "zlib"
+      "zlib",
+      "nlohmann-json"
     ]
   }

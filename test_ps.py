@@ -137,6 +137,7 @@ class PSViewer():
             self.add_sphere()
 
     def em_cluster(self):
+        # changes self.labels, self.label_quantity
         gmm = GaussianMixture(n_components= self.num_spheres, covariance_type='full')
 
         points = self.V_deform[self.points_set]
@@ -179,7 +180,6 @@ class PSViewer():
             self.centers[component] = center
             self.rs[component] = r
 
-        print(self.centers)
         self.added_sphere = ps.register_point_cloud("added", self.centers.reshape((-1, 3)), radius = 0.1)
         self.added_sphere.add_scalar_quantity("radius", self.rs)
         self.added_sphere.set_point_radius_quantity("radius")

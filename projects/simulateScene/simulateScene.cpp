@@ -16,6 +16,7 @@ IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY O
 */
 #include <iostream>
 #include <random>
+#include <fstream>
 #include "util/FFMPEG_MOVIE.h"
 #include "util/FILE_IO.h"
 
@@ -42,8 +43,10 @@ IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY O
 #include <snapshot.h>
 #include <iostream>
 #include <cnpy.h>
+#include <nlohmann/json.hpp>
 using namespace HOBAK;
 using namespace std;
+using json = nlohmann::json;
 
 void export_to_csr(const Eigen::SparseMatrix<double>& matrix,
     std::vector<double>& values,
@@ -274,6 +277,10 @@ int glvuWindow()
 int main(int argc, char *argv[])
 {
   // self-collision tests
+  std::ifstream config("../config.json");
+  json data = json::parse(config);
+  string input_file = data["input_file"];
+
   //scene = new ARM_BEND();
   scene = new BUNNY_DROP();
   //scene = new BUNNY_DROP_DEBUG();
@@ -303,6 +310,9 @@ int main(int argc, char *argv[])
   //scene = new QUASISTATIC_STRETCH();
 
   // make sure to print out what we should expect from this scene
+
+
+  scene-> _inputMesh = input_file;
   scene->printSceneDescription();
 
   bool success = scene->buildScene();

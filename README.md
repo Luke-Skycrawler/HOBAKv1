@@ -116,3 +116,6 @@ I sure hope the *t* tag wasn't already taken in the .obj specification. There wa
 To make your life slightly easier, I have also included a [Gmsh](http://gmsh.info) to Tobj converter, under the project
 *gmshToTobj*. It uses the Gmsh loader from Qingnan Zhou's [PyMesh](https://github.com/PyMesh/PyMesh) library.
 --->
+
+
+cmake -B "build" -S . -DCMAKE_TOOLCHAIN_FILE=D:/vcpkg/scripts/buildsystems/vcpkg.cmake 

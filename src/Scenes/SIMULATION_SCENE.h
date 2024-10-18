@@ -52,6 +52,7 @@ public:
     _frameNumber = 0;  
     _normalizedVertices = false;
     _sceneName = std::string("default");
+    _inputMesh = std::string("bunny.tobj");
     _initialA = MATRIX3::Identity();
     _initialTranslation = VECTOR3::Zero();
 
@@ -201,6 +202,7 @@ public:
 
   // scene name, used to determine the JSON and MOV filenames
   std::string _sceneName;
+  std::string _inputMesh;
 };
 
 }
