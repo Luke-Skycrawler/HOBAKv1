@@ -10,7 +10,7 @@ from tobj import export_tobj, import_tobj
 from medial import SlabMesh
 debug = False
 # model = "bar2"
-model = "cap"
+model = "raptor"
 values = np.load(f'output/{model}/values.npy')
 indices = np.load(f'output/{model}/indices.npy')
 indptr = np.load(f'output/{model}/indptr.npy')
@@ -32,10 +32,10 @@ if __name__ == '__main__':
         print(n_rows)
         A = csc_matrix((-values, indices, indptr), shape=(n_rows, n_cols))
         # print(A.toarray())
-        # eigenvalues, Q = eigsh(A, k=50, which='SM')
+        eigenvalues, Q = eigsh(A, k=25, which='SM')
         # eigenvalues, Q = eigsh(A, k=50)
 
-        eigenvalues, Q = eigh(A.toarray())
+        # eigenvalues, Q = eigh(A.toarray())
 
         print(eigenvalues)
         eigenvalues = np.array(eigenvalues)
@@ -55,6 +55,6 @@ if __name__ == '__main__':
 
 
     ps.init()
-    viewer = PSViewer(Q, eigenvalues, model="cap")
+    viewer = PSViewer(Q, eigenvalues, model=model)
     ps.set_user_callback(viewer.callback)
     ps.show()
