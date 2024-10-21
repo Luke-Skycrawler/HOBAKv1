@@ -1,5 +1,5 @@
 import numpy as np
-
+import os
 def export_tobj(file, V, T):
     to_strv = lambda x: f"v {x[0]} {x[1]} {x[2]}\n"
     to_strt = lambda t: f"t {t[0]} {t[1]} {t[2]} {t[3]}\n"
@@ -13,7 +13,9 @@ def export_tobj(file, V, T):
 def import_tobj(filename): 
     vertices = []
     faces = []
-
+    if not os.path.exists(filename):
+        print(f"{filename} does not exist")
+        return None, None
     with open(filename, 'r') as file:
         for line in file:
             # Split the line into components

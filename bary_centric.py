@@ -3,12 +3,19 @@ from medial import SlabMesh, slabmesh_default
 import numpy as np 
 import igl
 class TetBaryCentricCompute:
-    def __init__(self, model = "bar2"):
+    def __init__(self, model, nv = None):
+        
         self.V, self.T = import_tobj(f"data/{model}.tobj")
         
+        if nv is None:
 
-        self.slabmesh = slabmesh_default()
-        self.embed(self.V)
+            self.slabmesh = slabmesh_default()
+        else :
+            self.slabmesh = SlabMesh(f"data/{model}_v{nv}.ma")
+
+        self.bc, self.tids = None, None
+        if self.V is not None:
+            self.embed(self.V)
         
         
 
@@ -29,7 +36,7 @@ class TetBaryCentricCompute:
         
         self.bc = np.array(bc)
         self.tids = np.array(tids)
-        
+
 
     def barycentric_coord(self, point):
         T, a, b, c, d = self.T, self.a, self.b, self.c, self.d
@@ -46,6 +53,8 @@ class TetBaryCentricCompute:
         return bary, tid
 
     def deform(self, Qi):
+        if self.bc is None:
+            return
         V = self.V + Qi.reshape(-1, 3)
         T = self.T
         for i, tid in enumerate(self.tids):

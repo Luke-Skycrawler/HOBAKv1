@@ -4,32 +4,29 @@ import igl
 from bary_centric import TetBaryCentricCompute
 import numpy as np
 from off import write_off
-
+import os
 
 from sklearn.mixture import GaussianMixture
 from pyqmat import nqmat
 from sqem import Sqem
+
+model_nv = {
+    "spider": 25
+}
 class PSViewer():
     def __init__(self, Q, eigenvalues, model = "bar2"):
         self.Q = Q
         self.eigenvalues = eigenvalues
 
 
-        self.n_modes = self.Q.shape[1]
-        self.deformed_mode = 8
-        self.magnitude = 0.5
-        self.threshold = 0.9
-        self.objfile = f"output/{model}/{model}_deformed.obj"
-        self.ma_file = f"output/{model}/{model}_deformed.ma"
         # self.surface_mesh_file = f"data/{model}.obj"
         self.surface_mesh_file = f"data/{model}.off"
-        
-        self.fitting_save_folder = f"output/{model}/fitting"
-        
+
 
         # self.surface_V, _, _, self.surface_F, _, _ = igl.read_obj(self.surface_mesh_file)
         self.surface_V, self.surface_F, _ = igl.read_off(self.surface_mesh_file)
 
+        self.labels = np.zeros((self.surface_V.shape[0]), dtype = np.int32)
         self.nearest = np.zeros((self.surface_V.shape[0]), dtype = np.int32)
 
 
@@ -38,10 +35,17 @@ class PSViewer():
         
         self.mesh = ps.register_surface_mesh("mesh", self.surface_V, self.surface_F)
 
-        self.tbtt = TetBaryCentricCompute(model = model)
+        nv = None
+
+        if model in model_nv.keys():
+            nv = model_nv[model]
+        self.tbtt = TetBaryCentricCompute(model, nv)
         self.slabmesh = ps.register_point_cloud("slabmesh", self.tbtt.slabmesh.V, radius = 0.1)
         self.slabmesh_R = self.slabmesh.add_scalar_quantity("radius", self.tbtt.slabmesh.R)
         self.slabmesh.set_point_radius_quantity("radius")
+
+        self.non_manifold = ps.register_curve_network("non-manifold", self.tbtt.slabmesh.V, self.tbtt.slabmesh.E)
+
         self.V_tet_deform = np.copy(self.tbtt.V)
 
         self.vf, self.ni = igl.vertex_triangle_adjacency(self.surface_F, self.surface_V.shape[0])
@@ -54,6 +58,8 @@ class PSViewer():
 
         self.hausdorff = None
         self.h:np.ndarray = None
+
+        
         # self.qmat = qmat("data/{model}.off", f"data/{model}.ma")
         # h = self.qmat.export_hausdorff_distance()
         # self.slabmesh.add_scalar_quantity("hausdorff", h)
@@ -66,7 +72,20 @@ class PSViewer():
 
         self.mesh.add_scalar_quantity("nearest", self.nearest, enabled = True)
 
+        if Q is None:
+            self.Q = np.zeros((self.surface_V.shape[0] * 3, 1))
+        if self.tbtt.V is None:
+            self.tbtt.V = np.zeros_like(self.surface_V)
+        self.n_modes = self.Q.shape[1]
 
+
+        self.deformed_mode = min(8, self.n_modes - 1)
+        self.magnitude = 0.5
+        self.threshold = 0.9
+        self.objfile = f"output/{model}/{model}_deformed.obj"
+        self.ma_file = f"output/{model}/{model}_deformed.ma"
+        
+        self.fitting_save_folder = f"output/{model}/fitting"
 
 # Define our callback function, which Polyscope will repeatedly execute while running the UI.
 # We can write any code we want here, but in particular it is an opportunity to create ImGui 
@@ -175,7 +194,7 @@ class PSViewer():
 
             # print(center, r)
         self.slabmesh.add_scalar_quantity("radius", self.tbtt.slabmesh.R)
-        self.slabmesh.set_point_radius_quantity("radius")
+        self.slabmesh.set_point_radius_quantity("radius", autoscale = False)
         self.tbtt.embed(self.V_tet_deform)
     def em_cluster(self):
         # changes self.labels, self.label_quantity
@@ -224,7 +243,7 @@ class PSViewer():
 
         self.added_sphere = ps.register_point_cloud("added", self.centers.reshape((-1, 3)), radius = 0.1)
         self.added_sphere.add_scalar_quantity("radius", self.rs)
-        self.added_sphere.set_point_radius_quantity("radius")
+        self.added_sphere.set_point_radius_quantity("radius", autoscale=False)
         
 
 
@@ -267,9 +286,13 @@ class PSViewer():
 if __name__ == "__main__":
     ps.init() 
     ps.set_ground_plane_mode("none")
-    model = "cap"
-    Q = np.load(f"output/{model}/Q.npy")
-    eigenvalues = np.load(f"output/{model}/eigenvalues.npy")
+    # model = "cap"
+    model = "spider"
+    Q, eigenvalues = None, None
+    if os.path.exists(f"output/{model}/Q.npy"):
+        Q = np.load(f"output/{model}/Q.npy")
+        eigenvalues = np.load(f"output/{model}/eigenvalues.npy")
+    
     viewer = PSViewer(Q, eigenvalues, model = model)
     ps.set_user_callback(viewer.callback)
     ps.show()
