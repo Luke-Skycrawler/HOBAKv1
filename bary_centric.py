@@ -5,19 +5,22 @@ import igl
 class TetBaryCentricCompute:
     def __init__(self, model = "bar2"):
         self.V, self.T = import_tobj(f"data/{model}.tobj")
-        self.a = self.V[self.T[:, 0]]
-        self.b = self.V[self.T[:, 1]]
-        self.c = self.V[self.T[:, 2]]
-        self.d = self.V[self.T[:, 3]]
         
 
         self.slabmesh = slabmesh_default()
-
+        self.embed(self.V)
         
         
 
+
+    def embed(self, V):
+         
         bc = []
         tids = []
+        self.a = V[self.T[:, 0]]
+        self.b = V[self.T[:, 1]]
+        self.c = V[self.T[:, 2]]
+        self.d = V[self.T[:, 3]]
         for point in self.slabmesh.V: 
             bary, tid = self.barycentric_coord(point)
             bc.append(bary)
@@ -26,8 +29,8 @@ class TetBaryCentricCompute:
         
         self.bc = np.array(bc)
         self.tids = np.array(tids)
-
         
+
     def barycentric_coord(self, point):
         T, a, b, c, d = self.T, self.a, self.b, self.c, self.d
 

@@ -2,11 +2,12 @@ import polyscope as ps
 import polyscope.imgui as gui
 import igl
 from bary_centric import TetBaryCentricCompute
-from pyqmat import nqmat
 import numpy as np
 from off import write_off
-from sklearn.mixture import GaussianMixture
 
+
+from sklearn.mixture import GaussianMixture
+from pyqmat import nqmat
 from sqem import Sqem
 class PSViewer():
     def __init__(self, Q, eigenvalues, model = "bar2"):
@@ -15,8 +16,8 @@ class PSViewer():
 
 
         self.n_modes = self.Q.shape[1]
-        self.deformed_mode = self.n_modes - 7
-        self.magnitude = 1.0
+        self.deformed_mode = 8
+        self.magnitude = 0.5
         self.threshold = 0.9
         self.objfile = f"output/{model}/{model}_deformed.obj"
         self.ma_file = f"output/{model}/{model}_deformed.ma"
@@ -29,13 +30,19 @@ class PSViewer():
         # self.surface_V, _, _, self.surface_F, _, _ = igl.read_obj(self.surface_mesh_file)
         self.surface_V, self.surface_F, _ = igl.read_off(self.surface_mesh_file)
 
+        self.nearest = np.zeros((self.surface_V.shape[0]), dtype = np.int32)
+
 
         self.V_deform = np.copy(self.surface_V)
+
         
         self.mesh = ps.register_surface_mesh("mesh", self.surface_V, self.surface_F)
 
         self.tbtt = TetBaryCentricCompute(model = model)
         self.slabmesh = ps.register_point_cloud("slabmesh", self.tbtt.slabmesh.V, radius = 0.1)
+        self.slabmesh_R = self.slabmesh.add_scalar_quantity("radius", self.tbtt.slabmesh.R)
+        self.slabmesh.set_point_radius_quantity("radius")
+        self.V_tet_deform = np.copy(self.tbtt.V)
 
         self.vf, self.ni = igl.vertex_triangle_adjacency(self.surface_F, self.surface_V.shape[0])
         # print(self.vf.shape, self.ni.shape, self.vf.dtype, self.ni.dtype)
@@ -57,6 +64,8 @@ class PSViewer():
         # print(tbtt.tids)
         self.num_spheres = 1
 
+        self.mesh.add_scalar_quantity("nearest", self.nearest, enabled = True)
+
 
 
 # Define our callback function, which Polyscope will repeatedly execute while running the UI.
@@ -73,6 +82,7 @@ class PSViewer():
 
         self.V_deform = self.surface_V + disp[: self.surface_V.shape[0]]
         self.mesh.update_vertex_positions(self.V_deform)
+        self.V_tet_deform = self.tbtt.V + disp
 
         self.tbtt.deform(disp)
         self.slabmesh.update_point_positions(self.tbtt.slabmesh.V)
@@ -136,6 +146,37 @@ class PSViewer():
         if (gui.Button("add sphere")):
             self.add_sphere()
 
+        gui.Separator()
+        if (gui.Button("assign nearest")):
+            self.assign_nearest()
+        if (gui.Button("fit spheres")):
+            self.fit_spheres()
+    def assign_nearest(self):
+        for i in range(self.surface_V.shape[0]):
+            v = self.V_deform[i]
+            d = np.linalg.norm(self.tbtt.slabmesh.V - v, axis = 1)
+            
+            self.nearest[i] = np.argmin(d)
+
+        self.mesh.add_scalar_quantity("nearest", self.nearest, enabled = True)
+
+    def fit_spheres(self):
+        self.N = igl.per_face_normals(self.V_deform, self.surface_F, np.array([0.0, 0.0, 1.0]))
+        slab_V = self.tbtt.slabmesh.V
+        slab_R = self.tbtt.slabmesh.R
+        for i in range(slab_V.shape[0]):
+            select = self.nearest == i
+            center, r = self.sphere_from_patch(select)
+            # slab_V[i] = center
+            # slab_R[i] = r
+
+            self.tbtt.slabmesh.V[i] = center
+            self.tbtt.slabmesh.R[i] = r
+
+            # print(center, r)
+        self.slabmesh.add_scalar_quantity("radius", self.tbtt.slabmesh.R)
+        self.slabmesh.set_point_radius_quantity("radius")
+        self.tbtt.embed(self.V_tet_deform)
     def em_cluster(self):
         # changes self.labels, self.label_quantity
         gmm = GaussianMixture(n_components= self.num_spheres, covariance_type='full')
@@ -151,7 +192,22 @@ class PSViewer():
         self.label_quantity = self.mesh.add_scalar_quantity("label", self.labels, enabled = True)
 
 
+    def sphere_from_patch(self, select):
+        faces_set = self.face_set_from_points(select)
 
+        
+        sum = Sqem()
+        sum.set_zero()
+        for f in faces_set:
+            p = self.V_deform[self.surface_F[f, 0]]
+            n = self.N[f]
+            sf = Sqem(p, n)
+            sum = sum + sf
+
+        pa = np.ones((3)) * -10.0
+        pb = np.ones((3)) * 10.0
+        center,  r = sum.minimize(pa, pb)
+        return center, r
 
     def add_sphere(self): 
         self.N = igl.per_face_normals(self.V_deform, self.surface_F, np.array([0.0, 0.0, 1.0]))
@@ -162,21 +218,7 @@ class PSViewer():
         for component in range(self.num_spheres):
             print(component)
             select = self.labels == component
-            faces_set = self.face_set_from_points(select)
-
-            
-            sum = Sqem()
-            sum.set_zero()
-            for f in faces_set:
-                p = self.V_deform[self.surface_F[f, 0]]
-                n = self.N[f]
-                sf = Sqem(p, n)
-                sum = sum + sf
-
-            pa = np.ones((3)) * -10.0
-            pb = np.ones((3)) * 10.0
-            center,  r = sum.minimize(pa, pb)
-
+            center, r = self.sphere_from_patch(select)
             self.centers[component] = center
             self.rs[component] = r
 
